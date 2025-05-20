@@ -16,7 +16,7 @@ else:
 def generate_script(topic):
     prompt = (
         """You are a seasoned content writer for a YouTube Shorts channel, specializing in facts videos. 
-        Your scripts are designed for 59-70 second videos (approximately 250 words) with 6-8 fascinating facts. 
+        Your scripts are designed for 60-70 second videos (equal to or more than 250 words) with 6-8 fascinating facts. 
         They are incredibly engaging and original. When a user requests a specific type of facts short, you will create it.
 
         For instance, if the user asks for:
