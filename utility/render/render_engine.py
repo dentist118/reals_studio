@@ -46,6 +46,15 @@ def get_output_media(audio_file_path, timed_captions, background_video_data, vid
         
         # Create VideoFileClip from the downloaded file
         video_clip = VideoFileClip(video_filename)
+        
+        # Resize the clip to fit vertically without cropping
+        # First, scale to match height (1920), then crop width to 1080 centered
+        video_clip = video_clip.resize(height=1920)
+        video_clip = video_clip.crop(x_center=video_clip.size[0]/2, 
+                                    y_center=video_clip.size[1]/2, 
+                                    width=1080, 
+                                    height=1920)
+        
         video_clip = video_clip.set_start(t1)
         video_clip = video_clip.set_end(t2)
         visual_clips.append(video_clip)
@@ -55,17 +64,15 @@ def get_output_media(audio_file_path, timed_captions, background_video_data, vid
     audio_clips.append(audio_file_clip)
 
     for (t1, t2), text in timed_captions:
-        text_clip = TextClip(txt=text, fontsize=100, color="yellow", stroke_width=0, stroke_color="None", method="label")
+        text_clip = TextClip(txt=text, fontsize=100, color="white", stroke_width=3, stroke_color="black", method="label")
         text_clip = text_clip.set_start(t1)
         text_clip = text_clip.set_end(t2)
         text_clip = text_clip.set_position(["center", 800])
         visual_clips.append(text_clip)
 
-    # Create composite video with duration matching audio
-    video = CompositeVideoClip(visual_clips, size=(1080, 1920))  # Vertical format
-    video = video.set_duration(total_duration)
-    video = video.set_audio(CompositeAudioClip(audio_clips))
-
+    # Create composite with vertical size
+    video = CompositeVideoClip(visual_clips, size=(1080, 1920))
+    
     if audio_clips:
         audio = CompositeAudioClip(audio_clips)
         video.duration = audio.duration
