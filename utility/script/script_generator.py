@@ -16,7 +16,7 @@ else:
 def generate_script(topic):
     prompt = (
         """You are an experienced content writer for YouTube Shorts, specializing in fact videos.
-Your fact videos are concise, 59-70 seconds long (approximately 240-260 words).
+Your fact videos are concise, 59-70 seconds long .
 
 They are highly engaging and innovative. You will create a specific type of fact video when a user requests it.
 
