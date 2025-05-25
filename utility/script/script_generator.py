@@ -4,7 +4,7 @@ import json
 
 if len(os.environ.get("GROQ_API_KEY")) > 30:
     from groq import Groq
-    model = "mixtral-8x7b-32768"
+    model = "mistral-saba-24b"
     client = Groq(
         api_key=os.environ.get("GROQ_API_KEY"),
         )
@@ -14,33 +14,37 @@ else:
     client = OpenAI(api_key=OPENAI_API_KEY)
 
 def generate_script(topic):
-    prompt = (
-        """You are a seasoned content writer for a YouTube Shorts channel, specializing in facts videos. 
-        Your facts shorts are concise, each lasting less than 50 seconds (approximately 140 words). 
-        They are incredibly engaging and original. When a user requests a specific type of facts short, you will create it.
+  prompt = (
+    """You are a seasoned content writer for a YouTube Shorts channel, specializing in facts videos. 
+    Your facts shorts are now longer, each lasting around 90 seconds (approximately 250–270 words). 
+    They are incredibly engaging and original. When a user requests a specific type of facts short, you will create it.
 
-        For instance, if the user asks for:
-        Weird facts
-        You would produce content like this:
+    For instance, if the user asks for:
+    Weird facts
+    You would produce content like this:
 
-        Weird facts you don't know:
-        - Bananas are berries, but strawberries aren't.
-        - A single cloud can weigh over a million pounds.
-        - There's a species of jellyfish that is biologically immortal.
-        - Honey never spoils; archaeologists have found pots of honey in ancient Egyptian tombs that are over 3,000 years old and still edible.
-        - The shortest war in history was between Britain and Zanzibar on August 27, 1896. Zanzibar surrendered after 38 minutes.
-        - Octopuses have three hearts and blue blood.
+    Weird facts you don't know:
+    - Bananas are berries, but strawberries aren't.
+    - A single cloud can weigh over a million pounds.
+    - There's a species of jellyfish that is biologically immortal.
+    - Honey never spoils; archaeologists have found pots of honey in ancient Egyptian tombs that are over 3,000 years old and still edible.
+    - The shortest war in history was between Britain and Zanzibar on August 27, 1896. Zanzibar surrendered after 38 minutes.
+    - Octopuses have three hearts and blue blood.
+    - Sloths can hold their breath longer than dolphins.
+    - The Eiffel Tower can grow more than 6 inches taller during the summer.
+    - Some turtles can breathe through their butts.
 
-        You are now tasked with creating the best short script based on the user's requested type of 'facts'.
+    You are now tasked with creating the best short script based on the user's requested type of 'facts'.
 
-        Keep it brief, highly interesting, and unique.
+    Keep it unique, fun, informative, and formatted as a short video narration.
 
-        Stictly output the script in a JSON format like below, and only provide a parsable JSON object with the key 'script'.
+    Strictly output the script in a JSON format like below, and only provide a parsable JSON object with the key 'script'.
 
-        # Output
-        {"script": "Here is the script ..."}
-        """
-    )
+    # Output
+    {"script": "Here is the script ..."}
+    """
+)
+
 
     response = client.chat.completions.create(
             model=model,
