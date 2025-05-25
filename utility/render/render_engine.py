@@ -31,48 +31,52 @@ def get_program_path(program_name):
 
 def get_output_media(audio_file_path, timed_captions, background_video_data, video_server):
     OUTPUT_FILE_NAME = "rendered_video.mp4"
+    TARGET_SIZE = (1080, 1920)  # Portrait resolution
+
+    # Setup ImageMagick for TextClip rendering
     magick_path = get_program_path("magick")
-    print(magick_path)
-    if magick_path:
-        os.environ['IMAGEMAGICK_BINARY'] = magick_path
-    else:
-        os.environ['IMAGEMAGICK_BINARY'] = '/usr/bin/convert'
-    
+    os.environ['IMAGEMAGICK_BINARY'] = magick_path if magick_path else '/usr/bin/convert'
+
     visual_clips = []
-    for (t1, t2), video_url in background_video_data:
-        # Download the video file
-        video_filename = tempfile.NamedTemporaryFile(delete=False).name
-        download_file(video_url, video_filename)
-        
-        # Create VideoFileClip from the downloaded file
-        video_clip = VideoFileClip(video_filename)
-        video_clip = video_clip.set_start(t1)
-        video_clip = video_clip.set_end(t2)
-        visual_clips.append(video_clip)
-    
-    audio_clips = []
-    audio_file_clip = AudioFileClip(audio_file_path)
-    audio_clips.append(audio_file_clip)
+    temp_video_paths = []  # Track for cleanup
 
+    # Process video clips
+    for (t1, t2), video_url in background_video_data:
+        temp_video = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
+        temp_video_paths.append(temp_video.name)
+        download_file(video_url, temp_video.name)
+
+        clip = VideoFileClip(temp_video.name).subclip(0, min(t2 - t1, VideoFileClip(temp_video.name).duration))
+        clip = clip.resize(height=TARGET_SIZE[1]).crop(width=TARGET_SIZE[0], x_center=clip.w / 2)
+        clip = clip.set_start(t1).set_end(t2)
+        visual_clips.append(clip)
+
+    # Add text captions
     for (t1, t2), text in timed_captions:
-        text_clip = TextClip(txt=text, fontsize=100, color="white", stroke_width=3, stroke_color="black", method="label")
-        text_clip = text_clip.set_start(t1)
-        text_clip = text_clip.set_end(t2)
-        text_clip = text_clip.set_position(["center", 800])
-        visual_clips.append(text_clip)
+        txt_clip = TextClip(txt=text, fontsize=70, color="yellow", stroke_width=0,
+                            stroke_color="None", method="label", size=(1000, None))
+        txt_clip = txt_clip.set_position(("center", TARGET_SIZE[1] - 300)).set_start(t1).set_end(t2)
+        visual_clips.append(txt_clip)
 
-    video = CompositeVideoClip(visual_clips)
-    
-    if audio_clips:
-        audio = CompositeAudioClip(audio_clips)
-        video.duration = audio.duration
-        video.audio = audio
+    # Set up audio
+    audio_clip = AudioFileClip(audio_file_path)
+    audio_clip = audio_normalize(audio_clip)
+    audio = CompositeAudioClip([audio_clip])
 
+    # Combine all visuals
+    video = CompositeVideoClip(visual_clips, size=TARGET_SIZE)
+    video.audio = audio
+    video.duration = audio.duration
+
+    # Write output video
     video.write_videofile(OUTPUT_FILE_NAME, codec='libx264', audio_codec='aac', fps=25, preset='veryfast')
-    
-    # Clean up downloaded files
-    for (t1, t2), video_url in background_video_data:
-        video_filename = tempfile.NamedTemporaryFile(delete=False).name
-        os.remove(video_filename)
+
+    # Cleanup downloaded video files
+    for temp_path in temp_video_paths:
+        try:
+            os.remove(temp_path)
+        except Exception as e:
+            print(f"Failed to delete temp file: {temp_path}, error: {e}")
 
     return OUTPUT_FILE_NAME
+
