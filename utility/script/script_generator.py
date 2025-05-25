@@ -14,7 +14,7 @@ else:
     client = OpenAI(api_key=OPENAI_API_KEY)
 
 def generate_script(topic):
-  prompt = (
+    prompt = (
     """You are a seasoned content writer for a YouTube Shorts channel, specializing in facts videos. 
     Your facts shorts are now longer, each lasting around 90 seconds (approximately 250–270 words). 
     They are incredibly engaging and original. When a user requests a specific type of facts short, you will create it.
@@ -43,7 +43,7 @@ def generate_script(topic):
     # Output
     {"script": "Here is the script ..."}
     """
-)
+    )
 
 
     response = client.chat.completions.create(
